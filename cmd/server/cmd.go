@@ -21,7 +21,7 @@ var cmd = &cobra.Command{
 			return
 		}
 		config := initialization.LoadConfig(cfg)
-		initialization.Migrate()
+		// initialization.Migrate()
 		initialization.InitDatabaseConnection()
 
 		r := gin.Default()

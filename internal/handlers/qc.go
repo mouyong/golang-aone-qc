@@ -23,7 +23,7 @@ func CreateOrRetryQcTask(c *gin.Context) {
 		return
 	}
 
-	qcTask := models.QcTasks{
+	qcTaskModel := models.QcTasks{
 		Environment:       qcTaskParamsDTO.Environment,
 		TenantID:          qcTaskParamsDTO.TenantId,
 		Slug:              qcTaskParamsDTO.Slug,
@@ -33,7 +33,7 @@ func CreateOrRetryQcTask(c *gin.Context) {
 	}
 
 	// 以下是一个示意性的数据库保存操作，具体实现可能会有所不同
-	if err := qcTask.Save(); err != nil {
+	if err := qcTaskModel.Save(); err != nil {
 		resp.fail("保存错误: " + err.Error())
 		return
 	}
