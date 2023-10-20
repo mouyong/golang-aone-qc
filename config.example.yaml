@@ -1,0 +1,8 @@
+# 服务器配置
+HTTP_PORT: 9000
+
+DB_HOST: ""
+DB_PORT: 3306
+DB_DATABASE: ""
+DB_USERNAME: root
+DB_PASSWORD: root
