@@ -10,12 +10,15 @@ import (
 )
 
 type Config struct {
+    HttpHost     string `json:"httpHost"`
     HttpPort     int    `json:"httpPort"`
     DbHost       string `json:"dbHost"`
     DbPort       int    `json:"dbPort"`
     DbDatabase   string `json:"dbDatabase"`
     DbUsername   string `json:"dbUsername"`
     DbPassword   string `json:"dbPassword"`
+    MqHost       string `json:"mqHost"`
+    MqPort       int    `json:"mqPort"`
 }
 
 var AppConfig Config
@@ -30,12 +33,15 @@ func LoadConfig(cfg string) Config {
     }
     fmt.Println(string(content))
     AppConfig = Config{
+        HttpHost:   getViperStringValue("HTTP_Host", "0.0.0.0"),
         HttpPort:   getViperIntValue("HTTP_PORT", 9000),
         DbHost:     getViperStringValue("DB_HOST", "localhost"),
         DbPort:     getViperIntValue("DB_PORT", 3306),
         DbDatabase: getViperStringValue("DB_DATABASE", ""),
         DbUsername: getViperStringValue("DB_USERNAME", ""),
-        DbPassword: getViperStringValue("DB_PASSWORD", ""), // 使用默认值或隐藏值
+        DbPassword: getViperStringValue("DB_PASSWORD", ""),
+        MqHost:     getViperStringValue("MQ_HOST", "localhost"),
+        MqPort:     getViperIntValue("MQ_PORT", 5672),
     }
     fmt.Println("读取到的配置信息：", AppConfig)
 

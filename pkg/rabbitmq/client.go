@@ -4,18 +4,13 @@ import (
 	"context"
 	"log"
 	"time"
+    "fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-var RabbitmqClient
-var RabbitmqChannel
-
-func main() {
-    NewRabbitmqClient()
-
-    Send()
-}
+var RabbitmqClient *amqp.Connection
+var RabbitmqChannel *amqp.Channel
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -23,21 +18,20 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func NewRabbitmqClient() {
-    conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func NewRabbitmq(host string, port int) {
+    amqpHost := fmt.Sprintf("amqp://guest:guest@%s:%d/", host, port)
+    conn, err := amqp.Dial(amqpHost)
     failOnError(err, "Failed to connect to RabbitMQ")
-    defer conn.Close()
     RabbitmqClient = conn
 
     ch, err := conn.Channel()
     failOnError(err, "Failed to open a channel")
-    defer ch.Close()
     RabbitmqChannel = ch
 }
 
-func Send() {
-    q, err := ch.QueueDeclare(
-        "hello", // name
+func Send(queue_name string, data string) {
+    q, err := RabbitmqChannel.QueueDeclare(
+        queue_name, // name
         false,   // durable
         false,   // delete when unused
         false,   // exclusive
@@ -49,8 +43,8 @@ func Send() {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
     
-    body := "Hello World!"
-    err = ch.PublishWithContext(ctx,
+    body := data
+    err = RabbitmqChannel.PublishWithContext(ctx,
     "",     // exchange
     q.Name, // routing key
     false,  // mandatory
@@ -61,4 +55,9 @@ func Send() {
     })
     failOnError(err, "Failed to publish a message")
     log.Printf(" [x] Sent %s\n", body)
+}
+
+func Close() {
+    RabbitmqChannel.Close()
+    RabbitmqClient.Close()
 }

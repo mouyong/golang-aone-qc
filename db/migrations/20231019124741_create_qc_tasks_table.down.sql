@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS qc_tasks
+DROP TABLE IF EXISTS qc_tasks;

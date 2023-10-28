@@ -1,48 +1,49 @@
 package server
 
 import (
-	"log"
 	"fmt"
+	"log"
 
-	"github.com/spf13/cobra"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
 
-	"aone-qc/internal/initialization"
 	"aone-qc/internal/handlers"
+	"aone-qc/internal/initialization"
+	"aone-qc/pkg/rabbitmq"
 )
 
 var cmd = &cobra.Command{
 	Use:   "server",
 	Short: "run aone-qc api server",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := cmd.Flags().GetString("config")		
+		cfg, err := cmd.Flags().GetString("config")
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
 		config := initialization.LoadConfig(cfg)
-		// initialization.Migrate()
 		initialization.InitDatabaseConnection()
+		rabbitmq.NewRabbitmq(initialization.AppConfig.MqHost, initialization.AppConfig.MqPort)
 
 		r := gin.Default()
 		// 存储应用配置
-		r.Use(func (c *gin.Context) {
+		r.Use(func(c *gin.Context) {
 			c.Keys = make(map[string]interface{})
 			c.Keys["config"] = config
 			c.Next()
 		})
 
-        api := r.Group("/api")
-        {
-            api.POST("/qc/create", handlers.CreateOrRetryQcTask)
-            api.POST("/qc/retry", handlers.CreateOrRetryQcTask)
+		// 开始/重新 批次质控
+		r.POST("/api/qc/create", handlers.CreateOrRetryQcTask)
+		r.POST("/api/qc/retry", handlers.CreateOrRetryQcTask)
 
-            // api.GET("/qc/batch/list", handlers.GetQcBatchList)
-            // api.GET("/qc/notify/email", handlers.SendQcNotifyToEmail)
-            // api.GET("/qc/batch/detail/list", handlers.GetQcBatchDetailList)
+		// 查看批次进度与说明
+		r.GET("/api/qc/tasks/list", handlers.GetQcTaskListWithPage)
+		r.GET("/api/qc/tasks/sample/list", handlers.GetQcTaskSampleListWithPage)
+		// r.GET("/api/qc/notify/email", handlers.SendQcNotifyToEmail)
 
-            // api.POST("/data/list", handlers.GetDataList)
-        }
+		// r.POST("/api/data/list", handlers.GetDataList)
 
 		err = startHTTPServer(config, r)
 		if err != nil {
@@ -54,7 +55,7 @@ var cmd = &cobra.Command{
 func startHTTPServer(config initialization.Config, r *gin.Engine) (err error) {
 	fmt.Println("")
 	log.Printf("http server started: http://localhost:%d/\n", config.HttpPort)
-	err = r.Run(fmt.Sprintf(":%d", config.HttpPort))
+	err = r.Run(fmt.Sprintf("%s:%d", config.HttpHost, config.HttpPort))
 	if err != nil {
 		return fmt.Errorf("failed to start http server: %v", err)
 	}
