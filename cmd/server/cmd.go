@@ -23,8 +23,14 @@ var cmd = &cobra.Command{
 		}
 
 		config := initialization.LoadConfig(cfg)
-		initialization.InitDatabaseConnection()
-		rabbitmq.NewRabbitmq(initialization.AppConfig.MqHost, initialization.AppConfig.MqPort)
+		go func() {
+			fmt.Println("\n正在初始化")
+
+			initialization.InitDatabaseConnection()
+			rabbitmq.NewRabbitmq(initialization.AppConfig.MqHost, initialization.AppConfig.MqPort)
+
+			fmt.Println("初始化完成")
+		}()
 
 		r := gin.Default()
 		// 存储应用配置
