@@ -8,7 +8,7 @@ import (
 	"aone-qc/internal/models"
 )
 
-type QcTaskParamsDTO struct {
+type QcTaskDTO struct {
 	Environment       string `json:"environment"`
 	TenantId          string `json:"tenant_id"`
 	Slug              string `json:"slug"`
@@ -17,7 +17,7 @@ type QcTaskParamsDTO struct {
 	AnalysesBatchNo   string `json:"analyses_batch_no"`
 }
 
-type QcTaskDetail struct {
+type QcTaskResp struct {
 	*models.QcTasks
 
 	IsNeedAlert bool `json:"is_need_alert"`
@@ -26,19 +26,19 @@ type QcTaskDetail struct {
 func CreateOrRetryQcTask(c *gin.Context) {
 	resp := NewResp(c)
 
-	var qcTaskParamsDTO QcTaskParamsDTO
-	if err := c.ShouldBind(&qcTaskParamsDTO); err != nil {
+	var qcTaskDTO QcTaskDTO
+	if err := c.ShouldBind(&qcTaskDTO); err != nil {
 		resp.fail("请求错误: " + err.Error())
 		return
 	}
 
 	qcTaskModel := models.QcTasks{
-		Environment:       qcTaskParamsDTO.Environment,
-		TenantID:          qcTaskParamsDTO.TenantId,
-		Slug:              qcTaskParamsDTO.Slug,
-		ProjectName:       qcTaskParamsDTO.ProjectName,
-		ExperimentBatchNo: qcTaskParamsDTO.ExperimentBatchNo,
-		AnalysesBatchNo:   qcTaskParamsDTO.AnalysesBatchNo,
+		Environment:       qcTaskDTO.Environment,
+		TenantID:          qcTaskDTO.TenantId,
+		Slug:              qcTaskDTO.Slug,
+		ProjectName:       qcTaskDTO.ProjectName,
+		ExperimentBatchNo: qcTaskDTO.ExperimentBatchNo,
+		AnalysesBatchNo:   qcTaskDTO.AnalysesBatchNo,
 	}
 
 	// 以下是一个示意性的数据库保存操作，具体实现可能会有所不同
@@ -74,7 +74,7 @@ func GetQcTaskListWithPage(c *gin.Context) {
 		return
 	}
 
-	var data []*QcTaskDetail
+	var data []*QcTaskResp
 	for _, v := range list {
 		data = append(data, getQcTaskInfo(&v))
 	}
@@ -88,8 +88,8 @@ func GetQcTaskListWithPage(c *gin.Context) {
 	resp.successWithData(data, metaStruct)
 }
 
-func getQcTaskInfo(q *models.QcTasks) *QcTaskDetail {
-	qcDataDetail := &QcTaskDetail{
+func getQcTaskInfo(q *models.QcTasks) *QcTaskResp {
+	qcDataDetail := &QcTaskResp{
 		QcTasks:     q,
 		IsNeedAlert: false,
 	}
