@@ -17,7 +17,7 @@ type QcTaskSampleParamsDTO struct {
 	AnalysesBatchNo   string `json:"analyses_batch_no"`
 }
 
-type QcTaskSampleDetail struct {
+type QcTaskSampleResp struct {
 	*models.QcTaskSample
 
 	IsNeedAlert bool `json:"is_need_alert"`
@@ -44,7 +44,7 @@ func GetQcTaskSampleListWithPage(c *gin.Context) {
 		return
 	}
 
-	var data []*QcTaskSampleDetail
+	var data []*QcTaskSampleResp
 	for _, v := range list {
 		data = append(data, getQcTaskSampleInfo(&v))
 	}
@@ -58,6 +58,15 @@ func GetQcTaskSampleListWithPage(c *gin.Context) {
 	resp.successWithData(data, metaStruct)
 }
 
-func getQcTaskSampleInfo(qcTaskSample *models.QcTaskSample) *QcTaskSampleDetail {
-	return nil
+func getQcTaskSampleInfo(qcTaskSample *models.QcTaskSample) *QcTaskSampleResp {
+	qcTaskSampleListDetail := &QcTaskSampleResp{
+		QcTaskSample: qcTaskSample,
+		IsNeedAlert:  false,
+	}
+
+	if qcTaskSampleListDetail.Result == "fail" {
+		qcTaskSampleListDetail.IsNeedAlert = true
+	}
+
+	return qcTaskSampleListDetail
 }

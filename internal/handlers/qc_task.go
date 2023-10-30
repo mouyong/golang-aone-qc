@@ -13,8 +13,8 @@ type QcTaskDTO struct {
 	TenantId          string `json:"tenant_id"`
 	Slug              string `json:"slug"`
 	ProjectName       string `json:"project_name"`
-	ExperimentBatchNo string `json:"experiment_batch_no"`
-	AnalysesBatchNo   string `json:"analyses_batch_no"`
+	ExperimentBatchNo string `json:"experiment_batch_number"`
+	AnalysesBatchNo   string `json:"analysis_batch_number"`
 }
 
 type QcTaskResp struct {
@@ -42,7 +42,8 @@ func CreateOrRetryQcTask(c *gin.Context) {
 	}
 
 	// 以下是一个示意性的数据库保存操作，具体实现可能会有所不同
-	if err := qcTaskModel.Save(); err != nil {
+	_, err := qcTaskModel.Save()
+	if err != nil {
 		resp.fail("保存错误: " + err.Error())
 		return
 	}

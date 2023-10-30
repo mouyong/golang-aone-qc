@@ -10,21 +10,21 @@ import (
 
 type QcTaskSample struct {
 	ID                int64  `gorm:"primaryKey;autoIncrement" json:"id"`
-	BatchID           int64  `gorm:"not null" json:"batchId" comment:"批次ID"`
-	ExperimentBatchNo string `gorm:"type:varchar(255);not null" json:"experimentBatchNo" comment:"实验批次编号"`
-	AnalysesBatchNo   string `gorm:"type:varchar(255);not null" json:"analysesBatchNo" comment:"分析批次编号"`
-	SampleNo          string `gorm:"type:varchar(255);not null" json:"sampleNo" comment:"样本编号"`
-	Result            string `gorm:"type:enum('pass','fail');not null" json:"result" comment:"质控结果"`
-	ResultExplain     string `gorm:"type:text" json:"resultExplain" comment:"质控说明"`
+	BatchID           int64  `gorm:"not null" json:"batch_id" comment:"批次ID"`
+	ExperimentBatchNo string `gorm:"type:varchar(255);not null" json:"experiment_batch_number" comment:"实验批次编号"`
+	AnalysesBatchNo   string `gorm:"type:varchar(255);not null" json:"analysis_batch_number" comment:"分析批次编号"`
+	SampleNo          string `gorm:"type:varchar(255);not null" json:"sample_no" comment:"样本编号"`
+	Result            string `gorm:"type:varchar(64);not null" json:"result" comment:"质控结果"`
+	ResultExplain     string `gorm:"type:text" json:"result_explain" comment:"质控说明"`
 	Remark            string `gorm:"type:text" json:"remark" comment:"备注"`
 }
 
-func (q *QcTaskSample) Save() error {
-	var result QcTasks
+func (q *QcTaskSample) Save() (id int64, err error) {
+	var result QcTaskSample
 
 	db := initialization.Db
 
-	err := db.Where(&QcTaskSample{
+	err = db.Where(&QcTaskSample{
 		ExperimentBatchNo: q.ExperimentBatchNo,
 		AnalysesBatchNo:   q.AnalysesBatchNo,
 		SampleNo:          q.SampleNo,
@@ -36,24 +36,25 @@ func (q *QcTaskSample) Save() error {
 			q.ResultExplain = ""
 
 			if createErr := db.Create(&q).Error; createErr != nil {
-				return createErr
+				return 0, createErr
 			}
-		}
 
-		return err
+			return q.ID, nil
+		} else {
+			return 0, err
+		}
 	} else {
 		updateData := map[string]interface{}{
-			"State":         "waiting",
 			"Result":        "",
 			"ResultExplain": "",
 		}
 
 		if updateErr := db.Model(&result).Updates(updateData).Error; updateErr != nil {
-			return updateErr
+			return 0, updateErr
 		}
 	}
 
-	return nil
+	return result.ID, nil
 }
 
 func (q *QcTaskSample) GetQcTaskSampleListWithPage(offset, limit int, qcTaskSample QcTaskSample) (data []QcTaskSample, count int64, err error) {

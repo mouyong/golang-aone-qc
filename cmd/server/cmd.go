@@ -27,6 +27,7 @@ var cmd = &cobra.Command{
 		fmt.Println("\n正在初始化")
 		initialization.InitDatabaseConnection()
 		rabbitmq.NewRabbitmq(initialization.AppConfig.MqHost, initialization.AppConfig.MqPort)
+		rabbitmq.ListenQueue()
 		fmt.Println("初始化完成")
 
 		r := gin.Default()

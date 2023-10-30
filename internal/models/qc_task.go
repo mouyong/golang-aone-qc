@@ -4,29 +4,28 @@ import (
 	"gorm.io/gorm"
 
 	"aone-qc/internal/initialization"
-	"aone-qc/pkg/rabbitmq"
 )
 
 type QcTasks struct {
-	ID                 int64  `gorm:"primaryKey;autoIncrement" json:"id"`
-	Environment        string `gorm:"size:255;not null" json:"environment"`
-	TenantID           string `gorm:"size:255;not null" json:"tenant_id"`
-	Slug               string `gorm:"size:255;not null" json:"slug"`
-	ProjectName        string `gorm:"size:255;not null" json:"project_name"`
-	ExperimentBatchNo  string `gorm:"size:255;not null" json:"experiment_batch_no"`
-	AnalysesBatchNo    string `gorm:"size:255;null" json:"analyses_batch_no"`
-	State              string `gorm:"size:50;null" json:"state"`
-	Result             string `gorm:"size:50;null" json:"result"`
-	ResultExplain      string `gorm:"type:text;null" json:"result_explain"`
-	Remark             string `gorm:"type:text;null" json:"remark"`
+	ID                int64  `gorm:"primaryKey;autoIncrement" json:"id"`
+	Environment       string `gorm:"size:255;not null" json:"environment"`
+	TenantID          string `gorm:"size:255;not null" json:"tenant_id"`
+	Slug              string `gorm:"size:255;not null" json:"slug"`
+	ProjectName       string `gorm:"size:255;not null" json:"project_name"`
+	ExperimentBatchNo string `gorm:"size:255;not null" json:"experiment_batch_no"`
+	AnalysesBatchNo   string `gorm:"size:255;null" json:"analysis_batch_number"`
+	State             string `gorm:"size:50;null" json:"state"`
+	Result            string `gorm:"size:50;null" json:"result"`
+	ResultExplain     string `gorm:"type:text;null" json:"result_explain"`
+	Remark            string `gorm:"type:text;null" json:"remark"`
 }
 
-func (q *QcTasks) Save() error {
+func (q *QcTasks) Save() (id int64, err error) {
 	var result QcTasks
 
 	db := initialization.Db
 
-	err := db.Where(&QcTasks{
+	err = db.Where(&QcTasks{
 		Environment:       q.Environment,
 		TenantID:          q.TenantID,
 		Slug:              q.Slug,
@@ -38,36 +37,36 @@ func (q *QcTasks) Save() error {
 		if err == gorm.ErrRecordNotFound {
 			q.State = "waiting"
 			q.Result = ""
-			q.ResultExplain  = ""
+			q.ResultExplain = ""
 
 			if createErr := db.Create(&q).Error; createErr != nil {
-				return createErr
+				return 0, createErr
 			}
-		}
 
-		return err
+			return q.ID, nil
+		} else {
+			return 0, err
+		}
 	} else {
 		updateData := map[string]interface{}{
-			"State":          "waiting",
-			"Result":         "",
-			"ResultExplain":  "",
+			"State":         "waiting",
+			"Result":        "",
+			"ResultExplain": "",
 		}
 
 		if updateErr := db.Model(&result).Updates(updateData).Error; updateErr != nil {
-			return updateErr
+			return 0, updateErr
 		}
 	}
 
-	rabbitmq.Send("hello", "test from golang api")
-
-	return nil
+	return result.ID, nil
 }
 
 func (q *QcTasks) GetQcTaskListWithPage(offset, limit int, qcTasks QcTasks) (data []QcTasks, count int64, err error) {
-    var qcBatchList []QcTasks
+	var qcBatchList []QcTasks
 
 	db := initialization.Db
 	err = db.Where(qcTasks).Limit(limit).Offset(offset).Find(&qcBatchList).Offset(-1).Limit(-1).Count(&count).Error
 
-    return qcBatchList, count, nil
+	return qcBatchList, count, nil
 }
