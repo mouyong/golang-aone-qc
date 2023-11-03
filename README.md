@@ -32,6 +32,12 @@ make create NAME=xxx
 
 相关命令参考 Makefile
 
+```bash
+git clone git@codeup.aliyun.com:cblink/flow/china-life/data-distribute/data-distribute-api.git data-distribute-api
+
+make
+```
+
 ## 目录结构
 
 ```
