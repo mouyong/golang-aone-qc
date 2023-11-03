@@ -8,6 +8,7 @@ cp Makefile-example Makefile
 注意：
 - 修改2个文件中的数据库连接配置
 - 默认提供的迁移命令 migrate.darwin-amd64 是 mac 的版本，需要自行去下载系统对应的版本。下载好后，更新 Makefile 的迁移指令所使用的命令行
+- golang-migrate 下载地址: https://github.com/golang-migrate/migrate/releases
 
 
 ## 迁移与回滚
