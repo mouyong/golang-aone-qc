@@ -29,8 +29,10 @@ make create NAME=xxx
 ## 本地开发
 
 - air 命令可以热更新。
-<span style="text-decoration: line-through;">- 前提，代码没有报错。报错了没有提示，看不出来因为报错导致请求失败</span> - 已更改 .air.toml，失败时会显示报错
 - 启动命令是 make，需要热更新写代码，使用 air 命令。使用 make 命令，需要改动代码后，手动停止命令并启动 http 服务。
+
+
+注意：<span style="text-decoration: line-through;">报错了没有提示，看不出来因为报错导致请求失败</span>已更改 .air.toml，失败时会显示报错
 
 相关命令参考 Makefile
 
